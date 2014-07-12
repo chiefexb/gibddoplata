@@ -13,7 +13,7 @@ def main():
  oficer=oficerstr[2].lstrip(' ')
  date_act=l[5].decode('CP1251').partition(u'Дата и время формирования :')[2].lstrip(' ').split(' ')[0]
  print  date_act
- pp=l[6].decode('CP1251').split(';')
- print pp[1]
+ pp=l[6].split(';')
+ print pp[0]
 if __name__ == "__main__":
     main()
