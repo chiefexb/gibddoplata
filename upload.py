@@ -15,6 +15,9 @@ def getgenerator(cur,gen):
  except:
   g=-1
  return g
+def quoted(a):
+ st="'"+a+"'"
+ return st
 def main():
  fileconfig=file('./config.xml')
  xml=etree.parse(fileconfig)
@@ -59,6 +62,7 @@ def main():
  cur = con.cursor()
  id=getgenerator(cur,'SEC_REESTRS')
  print id
+ sql=sql+str(id)+','
  f.close()
  fileconfig.close()
  con.close() 
