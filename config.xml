@@ -1,0 +1,17 @@
+<config>
+ <main_database>
+  <hostname>localhost</hostname>
+  <dbname>mvd</dbname>
+  <user>SYSDBA</user>
+  <password>masterkey</password>
+ </main_database>
+ <rbd>
+  <hostname>localhost</hostname>
+  <dbname>ncore-rbd</dbname>
+  <user>SYSDBA</user>
+  <password>masterkey</password>
+ </rbd>
+ <input_path>/home/chief/work/gibdd_in/</input_path>
+ <input_arc_path>/home/chief/work/gibdd_in/</input_arc_path>
+ 
+</config>
