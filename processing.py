@@ -51,50 +51,57 @@ def main():
  cur = con.cursor()
  cur2 = con2.cursor()
  
- sql2="SELECT doc_ip_doc.id, document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) as NUMDOC ,doc_ip.id_debtsum,document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where     upper (REPLACE (doc_ip_doc.id_docno,' ','')) ="
+ sql2="SELECT doc_ip_doc.id, document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) as NUMDOC ,doc_ip.id_debtsum,document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID "  #  where     upper (REPLACE (doc_ip_doc.id_docno,' ','')) ="
  sql='SELECT * FROM reestrs where status=0'
- 
+ sql4="select 'update reestrs set reestrs.num_ip='''||doc_ip_doc.doc_number|| ''', reestrs.osp='''|| substring (doc_ip_doc.id from 1 for 4)|| ''' whrere reestrs.id='|| reestrs.id ||';' from reestrs reestrs join doc_ip_doc on reestrs.num_id=doc_ip_doc.numdoc and doc_ip_doc.docstatusid=9" 
+ sql5="SELECT 'INSERT INTO doc_ip_doc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
  cur.execute(sql)
- r=cur.fetchall()
- with Profiler() as p:
-  logging.info(u"Начинаем обрабатывать "+str(len(r))+u" записей" )
-  for i in range (0,len(r)):
-   sq=sql2+quoted(r[i][2])
-   #print sq
-   id=r[i][0]
-   cur2.execute(sq)
-   r2=cur2.fetchall()
-   #print len(r2)
-   #Проверяем длину
-   if len(r2)==1:
-    num_ip=quoted(r2[0][1])
-    osp=quoted(str(r2[0][0])[0:4])
-    docstatusid=r2[0][5]
-    #print num_ip,osp,str(docstatusid)
-    status=1
-   elif len(r2)>1:
-    sqq=sq+'and document.docstatusid=9'
-    cur2.execute(sqq)
-    r2=cur2.fetchall()
-    if len(r2)==1:
-     num_ip=r2[0][1]
-     osp=str(r2[0][0])[0:4]
-    else:
-     num_ip='null'
-     osp='null'
-     status=3
-   else:
-    num_ip='null'
-    osp='null'
-    status=3
-   sql3="update reestrs set status="+str(status)+clm+'osp='+(osp) +clm+'num_ip='+(num_ip)+' where id='+str(id)
-   try:
-    cur.execute(sql3)
-   except Exception,e:
-    print e,sql3
-    logging.error(u"Ошибка обработки:"+str(e))
-    logging.error(sql3)
-  con.commit()
+ try:
+  f=(sys.argv[1])
+ except Exception,e:
+  print e
+  sys.exit(2)
+ print f
+# r=cur.fetchall()
+# with Profiler() as p:
+#  logging.info(u"Начинаем обрабатывать "+str(len(r))+u" записей" )
+#  for i in range (0,len(r)):
+#   sq=sql2+quoted(r[i][2])
+#   #print sq
+#   id=r[i][0]
+#   cur2.execute(sq)
+#   r2=cur2.fetchall()
+#   #print len(r2)
+#   #Проверяем длину
+#   if len(r2)==1:
+#    num_ip=quoted(r2[0][1])
+#    osp=quoted(str(r2[0][0])[0:4])
+#    docstatusid=r2[0][5]
+#    #print num_ip,osp,str(docstatusid)
+#    status=1
+#   elif len(r2)>1:
+#    sqq=sq+'and document.docstatusid=9'
+#    cur2.execute(sqq)
+#    r2=cur2.fetchall()
+#    if len(r2)==1:
+#     num_ip=r2[0][1]
+#     osp=str(r2[0][0])[0:4]
+#    else:
+#     num_ip='null'
+#     osp='null'
+#     status=3
+#   else:
+#    num_ip='null'
+#    osp='null'
+#    status=3
+#   sql3="update reestrs set status="+str(status)+clm+'osp='+(osp) +clm+'num_ip='+(num_ip)+' where id='+str(id)
+#   try:
+#    cur.execute(sql3)
+#   except Exception,e:
+#    print e,sql3
+#    logging.error(u"Ошибка обработки:"+str(e))
+#    logging.error(sql3)
+#  con.commit()
  con2.close()
  con.close()
  fileconfig.close()
