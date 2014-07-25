@@ -13,8 +13,9 @@ class Profiler(object):
         self._startTime = time.time()
 
     def __exit__(self, type, value, traceback):
-        print "Elapsed time:",time.time() - self._startTime # {:.3f} sec".format(time.time() - self._startTime)
-        st=u"Elapsed time:"+str(time.time() - self._startTime) # {:.3f} sec".format(time.time() - self._startTime)
+        #print "Elapsed time:",time.time() - self._startTime # {:.3f} sec".format(time.time() - self._startTime)
+        st=u"Время выполнения:"+str(time.time() - self._startTime) # {:.3f} sec".format(time.time() - self._startTime)
+        print st
         logging.info(st)
 def quoted(a):
  st=u"'"+a+u"'"
@@ -53,16 +54,48 @@ def main():
  
  sql2="SELECT doc_ip_doc.id, document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) as NUMDOC ,doc_ip.id_debtsum,document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID "  #  where     upper (REPLACE (doc_ip_doc.id_docno,' ','')) ="
  sql='SELECT * FROM reestrs where status=0'
- sql4="select 'update reestrs set reestrs.num_ip='''||doc_ip_doc.doc_number|| ''', reestrs.osp='''|| substring (doc_ip_doc.id from 1 for 4)|| ''' whrere reestrs.id='|| reestrs.id ||';' from reestrs reestrs join doc_ip_doc on reestrs.num_id=doc_ip_doc.numdoc and doc_ip_doc.docstatusid=9" 
- sql5="SELECT 'INSERT INTO doc_ip_doc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
- cur.execute(sql)
- try:
-  f=(sys.argv[1])
- except Exception,e:
-  print e
-  sys.exit(2)
- print f
-# r=cur.fetchall()
+ sql4="select 'update reestrs set reestrs.num_ip='''||doc_ip_doc.doc_number|| ''', reestrs.osp='''|| substring (doc_ip_doc.id from 1 for 4)|| ''' whrere reestrs.id='|| reestrs.id ||';' from reestrs reestrs join doc_ip_doc on reestrs.num_id=doc_ip_doc.numdoc and doc_ip_doc.docstatusid=9"
+ sql5="SELECT 'INSERT INTO doc_ip_doc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where "# (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
+ #cur.execute(sql)
+ start_date='01.01.2013'
+ if sys.argv[1]=='loadrbd':
+  sq= sql5+"(doc_ip.ip_risedate<"+quoted(start_date)+" and document.docstatusid=9) or (doc_ip.ip_risedate>="+quoted(start_date)+")"
+  st=u"Генерация скрипта вставки данных из РБД во временную таблицу"
+  logging.info(st)
+  print st
+  with Profiler() as p:
+   cur2.execute(sq)
+   r=cur2.fetchall()
+  st=u"Выбрано " +str(len(r))+ u"записей"
+  logging.info(st)
+  print st
+  cur.execute("delete from doc_ip_doc")
+  con.commit()
+  st=u"Вставляем выбранные записи во временную таблицу:"
+  logging.info(st)
+  print st
+  with Profiler() as p:
+   for i in range(0,len(r)):
+    print r[i]
+    try:
+     cur.execute(r[i][0])
+    except Exception,e:
+     print r[i][0] 
+     sys.exit(2)
+  st=u"Меряем время commitа :"
+  logging.info(st)
+  print st
+  with Profiler() as p:
+   con.commit()
+  st=u"Сохраняем скрипт в файл:"
+  logging.info(st)
+  print st
+  with Profiler() as p:
+   f=open('./rbd.sql','w')
+   f.writelines(r)
+   f.close()
+
+
 # with Profiler() as p:
 #  logging.info(u"Начинаем обрабатывать "+str(len(r))+u" записей" )
 #  for i in range (0,len(r)):
