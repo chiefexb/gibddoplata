@@ -55,45 +55,44 @@ def main():
  sql2="SELECT doc_ip_doc.id, document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) as NUMDOC ,doc_ip.id_debtsum,document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID "  #  where     upper (REPLACE (doc_ip_doc.id_docno,' ','')) ="
  sql='SELECT * FROM reestrs where status=0'
  sql4="select 'update reestrs set reestrs.num_ip='''||doc_ip_doc.doc_number|| ''', reestrs.osp='''|| substring (doc_ip_doc.id from 1 for 4)|| ''' whrere reestrs.id='|| reestrs.id ||';' from reestrs reestrs join doc_ip_doc on reestrs.num_id=doc_ip_doc.numdoc and doc_ip_doc.docstatusid=9"
- sql5="SELECT 'INSERT INTO doc_ip_doc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where "# (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
- #cur.execute(sql)
+ sql5=u"SELECT cast('INSERT INTO docipdoc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '''|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' as varchar(1000)) FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where "# (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
+ sql6="SELECT  doc_ip_doc.id , document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) ,doc_ip.id_debtsum, document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where"  
+ sql7="INSERT INTO docipdoc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES (?,?,?,?,?,?)"
+#cur.execute(sql)
  start_date='01.01.2013'
  if sys.argv[1]=='loadrbd':
-  sq= sql5+"(doc_ip.ip_risedate<"+quoted(start_date)+" and document.docstatusid=9) or (doc_ip.ip_risedate>="+quoted(start_date)+")"
+  sq= sql6+"(doc_ip.ip_risedate<"+quoted(start_date)+" and document.docstatusid=9) or (doc_ip.ip_risedate>="+quoted(start_date)+")"
+  print sq
   st=u"Генерация скрипта вставки данных из РБД во временную таблицу"
   logging.info(st)
   print st
   with Profiler() as p:
    cur2.execute(sq)
    r=cur2.fetchall()
+   print r[0]
   st=u"Выбрано " +str(len(r))+ u"записей"
   logging.info(st)
   print st
-  cur.execute("delete from doc_ip_doc")
+  cur.execute("delete from docipdoc")
   con.commit()
   st=u"Вставляем выбранные записи во временную таблицу:"
   logging.info(st)
   print st
   with Profiler() as p:
    for i in range(0,len(r)):
-    print r[i]
-    try:
-     cur.execute(r[i][0])
-    except Exception,e:
-     print r[i][0] 
-     sys.exit(2)
+    cur.execute (sql7,r[i])
   st=u"Меряем время commitа :"
   logging.info(st)
   print st
   with Profiler() as p:
    con.commit()
-  st=u"Сохраняем скрипт в файл:"
-  logging.info(st)
-  print st
-  with Profiler() as p:
-   f=open('./rbd.sql','w')
-   f.writelines(r)
-   f.close()
+  #st=u"Сохраняем скрипт в файл:"
+  #logging.info(st)
+  #print st
+  #f=file('./rbd.sql','w')
+  #for i in r:
+  # f.write(rr)
+  # f.close()
 
 
 # with Profiler() as p:
