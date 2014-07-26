@@ -184,7 +184,8 @@ def main():
        st=st+(r[j][k]).strftime('%d.%m.%Y')+cm
       else:
        st=st+str(r[j][k])+cm
-    print st
+    st=st+'\n'
+    #print st
     #print output_path+fn
     f.write(st.encode('UTF-8'))
    f.close() 

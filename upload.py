@@ -79,6 +79,8 @@ def main():
    #print date_start,date_end
    oficerstr=l[4].decode('CP1251').partition(u'Файл сформирован :')
    oficer=oficerstr[2].lstrip(' ')
+   oficer=oficer.replace(chr(13),'')
+   oficer=oficer.replace(chr(10),'')
    date_act=l[5].decode('CP1251').partition(u'Дата и время формирования :')[2].lstrip(' ').split(' ')[0]
    #print  date_act
    #pp=l[6].decode('CP1251').split(';')
