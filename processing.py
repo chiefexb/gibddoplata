@@ -184,12 +184,15 @@ def main():
        st=st+(r[j][k]).strftime('%d.%m.%Y')+cm
       else:
        st=st+str(r[j][k])+cm
+    sq4="update reestrs set status=10, outfilename="+quoted(fn)+clm+"date_out="+quoted(d)+clm+"out_packet_id="+str(id)+ " where id="+str(r[j][0])
     st=st+'\n'
     #print st
     #print output_path+fn
     f.write(st.encode('UTF-8'))
+    cur.execute(sq4)
+   con.commit()
    f.close() 
-   
+      
     
 
  con2.close()
