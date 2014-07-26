@@ -8,6 +8,10 @@ import logging
 import datetime
 import timeit
 import time
+def inform(st):
+ logging.info(st)
+ print st
+ return
 class Profiler(object):
     def __enter__(self):
         self._startTime = time.time()
@@ -58,10 +62,12 @@ def main():
  sql5=u"SELECT cast('INSERT INTO docipdoc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES ('|| doc_ip_doc.id ||', ''' || document.doc_number||''', '''|| doc_ip_doc.id_dbtr_name||''',''' ||(REPLACE (doc_ip_doc.id_docno,' ','')) ||''','|| doc_ip.id_debtsum||' , '|| document.docstatusid||');' as varchar(1000)) FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where "# (doc_ip.ip_risedate<'01.01.2013' and document.docstatusid=9) or (doc_ip.ip_risedate>='01.01.2013')"
  sql6="SELECT  doc_ip_doc.id , document.doc_number, doc_ip_doc.id_dbtr_name,(REPLACE (doc_ip_doc.id_docno,' ','')) ,doc_ip.id_debtsum, document.docstatusid FROM DOC_IP_DOC DOC_IP_DOC JOIN DOC_IP ON DOC_IP_DOC.ID=DOC_IP.ID JOIN DOCUMENT ON DOC_IP.ID=DOCUMENT.ID  where"  
  sql7="INSERT INTO docipdoc (ID, DOC_NUMBER, ID_DBTR_NAME, NUMDOC, ID_DEBTSUM, DOCSTATUSID) VALUES (?,?,?,?,?,?)"
+ sql8="select docipdoc.doc_number,  substring (docipdoc.id from 1 for 4), reestrs.id from reestrs reestrs join docipdoc on (reestrs.num_id=docipdoc.numdoc and docipdoc.docstatusid=9 and reestrs.status=0)"
+ sql9="select docipdoc.doc_number,  substring (docipdoc.id from 1 for 4), reestrs.id from reestrs reestrs join docipdoc on (reestrs.num_id=docipdoc.numdoc and docipdoc.docstatusid<>9 and reestrs.status=0)"
 #cur.execute(sql)
  start_date='01.01.2013'
  if sys.argv[1]=='loadrbd':
-  sq= sql6+"(doc_ip.ip_risedate<"+quoted(start_date)+" and document.docstatusid=9) or (doc_ip.ip_risedate>="+quoted(start_date)+")"
+  sq= sql6+"(doc_ip.ip_risedate<"+quoted(start_date)+" and document.docstatusid=9) or (doc_ip.ip_risedate>="+quoted(start_date)+") or (doc_ip.ip_risedate is null)"
   print sq
   st=u"Генерация скрипта вставки данных из РБД во временную таблицу"
   logging.info(st)
@@ -93,47 +99,45 @@ def main():
   #for i in r:
   # f.write(rr)
   # f.close()
+ if sys.argv[1]=='process':
+  inform(u"Начинаем поиск соответствий номеров ИД ГИБДД и РБД ИП на исполнении: ")
+  with Profiler() as p:
+   cur.execute(sql8)
+   r=cur.fetchall()
+  inform(u"Найдено "+str(len(r))+u" соответствий, ИП в исполнении")
+  inform(u"Герерируем и сразу исполняем скрипт обработки:")
+  with Profiler() as p:
+   for i in range(0,len(r)):
+    sq="update reestrs set status=1, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+" where id="+str(r[i][2])
+    #print sq
+    cur.execute(sq)
+  inform(u"Меряем время коммита:")
+  with Profiler() as p:
+   con.commit()
+  inform(u"Начинаем поиск соответствий номеров ИД ГИБДД и РБД ИП не в исполнении: ")
+  with Profiler() as p:
+   cur.execute(sql9)
+   r=cur.fetchall()
+  inform(u"Найдено "+str(len(r))+u" соответствий, ИП не в исполнении")
+  inform(u"Герерируем и сразу исполняем скрипт обработки:")
+  with Profiler() as p:
+   for i in range(0,len(r)):
+    sq="update reestrs set status=3, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+" where id="+str(r[i][2])
+    #print sq
+    cur.execute(sq)
+  inform(u"Меряем время коммита:")
+  with Profiler() as p:
+   con.commit()
+ if sys.argv[1]=='get':
+  sq="select * from reestrs where status=1"
+  inform(u"Выбираем готовые к выгрузке платежные документы:")
+  with Profiler() as p:
+   cur.execute(sq)
+   r=cur.fetchaall()
+  inform(u"Найдено "+str(len(r))+u" записей")
+  
+    
 
-
-# with Profiler() as p:
-#  logging.info(u"Начинаем обрабатывать "+str(len(r))+u" записей" )
-#  for i in range (0,len(r)):
-#   sq=sql2+quoted(r[i][2])
-#   #print sq
-#   id=r[i][0]
-#   cur2.execute(sq)
-#   r2=cur2.fetchall()
-#   #print len(r2)
-#   #Проверяем длину
-#   if len(r2)==1:
-#    num_ip=quoted(r2[0][1])
-#    osp=quoted(str(r2[0][0])[0:4])
-#    docstatusid=r2[0][5]
-#    #print num_ip,osp,str(docstatusid)
-#    status=1
-#   elif len(r2)>1:
-#    sqq=sq+'and document.docstatusid=9'
-#    cur2.execute(sqq)
-#    r2=cur2.fetchall()
-#    if len(r2)==1:
-#     num_ip=r2[0][1]
-#     osp=str(r2[0][0])[0:4]
-#    else:
-#     num_ip='null'
-#     osp='null'
-#     status=3
-#   else:
-#    num_ip='null'
-#    osp='null'
-#    status=3
-#   sql3="update reestrs set status="+str(status)+clm+'osp='+(osp) +clm+'num_ip='+(num_ip)+' where id='+str(id)
-#   try:
-#    cur.execute(sql3)
-#   except Exception,e:
-#    print e,sql3
-#    logging.error(u"Ошибка обработки:"+str(e))
-#    logging.error(sql3)
-#  con.commit()
  con2.close()
  con.close()
  fileconfig.close()
