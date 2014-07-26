@@ -8,6 +8,19 @@ import logging
 import datetime
 import timeit
 import time
+def getgenerator(cur,gen):
+ sq="SELECT GEN_ID("+gen+", 1) FROM RDB$DATABASE"
+ try:
+  cur.execute(sq)
+ except:
+  print "err"
+ cur.execute(sq)
+ r=cur.fetchall()
+ try:
+  g=r[0][0]
+ except:
+  g=-1
+ return g
 def inform(st):
  logging.info(st)
  print st
@@ -25,6 +38,13 @@ def quoted(a):
  st=u"'"+a+u"'"
  return st
 def main():
+ print  len(sys.argv)
+ if len(sys.argv) <2:
+  print "Для запуска набери: ./processing.py loadrbd|process|get"
+  print '       loadrbd - Загрузка новых данных из РБД и очистка таблицы от предыдущей версии'
+  print '       process - Поиск соответвий реестров из ГИБДД с данными из РБД'
+  print '       get     - Выгрузка реестров для загрузки в подразделениях'
+  sys.exit(2)
  logging.basicConfig(format = u'%(levelname)-8s [%(asctime)s] %(message)s',level = logging.DEBUG, filename = './processing.log')
  fileconfig=file('./config.xml')
  xml=etree.parse(fileconfig)
@@ -41,7 +61,11 @@ def main():
  rbd_user=rbd_database.find('user').text
  rbd_password=rbd_database.find('password').text
  rbd_host=rbd_database.find('hostname').text
+ 
+ nd=xmlroot.find('output_path')
+ output_path=nd.text
  clm=' , '
+ cm=';'
  try:
    con = fdb.connect (host=main_host, database=main_dbname, user=main_user, password=main_password,charset='WIN1251')
  except  Exception, e:
@@ -129,13 +153,42 @@ def main():
   with Profiler() as p:
    con.commit()
  if sys.argv[1]=='get':
+  sq1='select osp from reestrs where reestrs.status=1 group by osp'
   sq="select * from reestrs where status=1"
-  inform(u"Выбираем готовые к выгрузке платежные документы:")
-  with Profiler() as p:
-   cur.execute(sq)
-   r=cur.fetchaall()
-  inform(u"Найдено "+str(len(r))+u" записей")
-  
+  inform(u"Выбираем готовые к выгрузке платежные документы, делим по подразделениям:")
+  cur.execute (sq1)
+  packets=cur.fetchall()
+  print packets[0][0]
+  for i in range(0,len(packets)):
+   id=getgenerator(cur,'SEC_REESTRS_OUT_PACK')
+   pp=packets[i][0]
+   sq3=sq+" and osp="+quoted(pp)
+   inform(u"Выбираем подразделение: "+pp)
+   with Profiler() as p:
+    cur.execute(sq3)
+    r=cur.fetchall()
+   inform(u"Найдено "+str(len(r))+u" записей") 
+   d=datetime.datetime.now().strftime('%d.%m.%y')
+   df=datetime.datetime.now().strftime('%Y_%m_%d')
+   fn=pp+'_'+df+'_'+str(id)+'_fix.txt'
+   st=''
+   j=0
+   f=file(output_path+fn,'w')
+   for j in range (0,len(r)):
+    st=''
+    for k in range(2,19):
+     if not (k in (16,17)):
+      if str(type(r[j][k]))=="<type 'unicode'>":
+       st=st+r[j][k]+cm
+      elif str(type(r[j][k]))=="<type 'datetime.date'>":
+       st=st+(r[j][k]).strftime('%d.%m.%Y')+cm
+      else:
+       st=st+str(r[j][k])+cm
+    print st
+    #print output_path+fn
+    f.write(st.encode('UTF-8'))
+   f.close() 
+   
     
 
  con2.close()

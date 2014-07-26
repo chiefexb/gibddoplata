@@ -83,7 +83,7 @@ def main():
    #print  date_act
    #pp=l[6].decode('CP1251').split(';')
    #print pp[1],pp
-   sql='INSERT INTO REESTRS (ID, PACKET_ID, NUM_ID, DATE_ID, LASTNAME, FISTNAME_OGRN, SECONDNAME_INN, SUMM, DATE_ISP, MARK_ISP, PRIM, FILENAME, DATE_ACT, PERIOD_START, PERIOD_END, FIO_OFICER, STATUS, OSP, NUM_IP) VALUES ('
+   sql='INSERT INTO REESTRS (ID, PACKET_ID, NUM_ID, DATE_ID, LASTNAME, FISTNAME_OGRN, SECONDNAME_INN, SUMM, DATE_ISP, MARK_ISP, PRIM, FILENAME, DATE_ACT, PERIOD_START, PERIOD_END, FIO_OFICER, STATUS, OSP, NUM_IP, OUTFILENAME, DATE_OUT, OUT_PACKET_ID) VALUES ('
    cur = con.cursor()
    #id=getgenerator(cur,'SEC_REESTRS')
    pack_id=getgenerator(cur,'SEC_REESTRS_PACK')
@@ -102,7 +102,7 @@ def main():
      logging.info(l[i].decode('CP1251'))
     else:
      date_isp=quoted(pp[7])
-    sql2=sql+str(id)+clm+str(pack_id)+clm+quoted(pp[1])+clm+quoted(pp[2])+clm+quoted(pp[3])+clm+quoted(pp[4])+clm+quoted(pp[5])+clm+(pp[6])+clm+date_isp+clm+quoted(pp[8])+clm+quoted(pp[9])+clm+quoted(ff)+clm+quoted(date_act)+clm+quoted(date_start)+clm+quoted(date_end)+clm+quoted(oficer)+',0, null,null)'
+    sql2=sql+str(id)+clm+str(pack_id)+clm+quoted(pp[1])+clm+quoted(pp[2])+clm+quoted(pp[3])+clm+quoted(pp[4])+clm+quoted(pp[5])+clm+(pp[6])+clm+date_isp+clm+quoted(pp[8])+clm+quoted(pp[9])+clm+quoted(ff)+clm+quoted(date_act)+clm+quoted(date_start)+clm+quoted(date_end)+clm+quoted(oficer)+',0, null,null,null,null,null)'
     #print sql2
     try:
      cur.execute(sql2)
