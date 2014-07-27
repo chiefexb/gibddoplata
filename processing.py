@@ -158,41 +158,43 @@ def main():
   inform(u"Выбираем готовые к выгрузке платежные документы, делим по подразделениям:")
   cur.execute (sq1)
   packets=cur.fetchall()
-  print packets[0][0]
-  for i in range(0,len(packets)):
-   id=getgenerator(cur,'SEC_REESTRS_OUT_PACK')
-   pp=packets[i][0]
-   sq3=sq+" and osp="+quoted(pp)
-   inform(u"Выбираем подразделение: "+pp)
-   with Profiler() as p:
-    cur.execute(sq3)
-    r=cur.fetchall()
-   inform(u"Найдено "+str(len(r))+u" записей") 
-   d=datetime.datetime.now().strftime('%d.%m.%y')
-   df=datetime.datetime.now().strftime('%Y_%m_%d')
-   fn=pp+'_'+df+'_'+str(id)+'_fix.txt'
-   st=''
-   j=0
-   f=file(output_path+fn,'w')
-   for j in range (0,len(r)):
+  #print packets[0][0]
+  if len(packets)<>0:
+   for i in range(0,len(packets)):
+    id=getgenerator(cur,'SEC_REESTRS_OUT_PACK')
+    pp=packets[i][0]
+    sq3=sq+" and osp="+quoted(pp)
+    inform(u"Выбираем подразделение: "+pp)
+    with Profiler() as p:
+     cur.execute(sq3)
+     r=cur.fetchall()
+    inform(u"Найдено "+str(len(r))+u" записей") 
+    d=datetime.datetime.now().strftime('%d.%m.%y')
+    df=datetime.datetime.now().strftime('%Y_%m_%d')
+    fn=pp+'_'+df+'_'+str(id)+'_fix.txt'
     st=''
-    for k in range(2,19):
-     if not (k in (16,17)):
-      if str(type(r[j][k]))=="<type 'unicode'>":
-       st=st+r[j][k]+cm
-      elif str(type(r[j][k]))=="<type 'datetime.date'>":
-       st=st+(r[j][k]).strftime('%d.%m.%Y')+cm
-      else:
-       st=st+str(r[j][k])+cm
-    sq4="update reestrs set status=10, outfilename="+quoted(fn)+clm+"date_out="+quoted(d)+clm+"out_packet_id="+str(id)+ " where id="+str(r[j][0])
-    st=st+'\n'
-    #print st
-    #print output_path+fn
-    f.write(st.encode('UTF-8'))
-    cur.execute(sq4)
-   con.commit()
-   f.close() 
-      
+    j=0
+    f=file(output_path+fn,'w')
+    for j in range (0,len(r)):
+     st=''
+     for k in range(2,19):
+      if not (k in (16,17)):
+       if str(type(r[j][k]))=="<type 'unicode'>":
+        st=st+r[j][k]+cm
+       elif str(type(r[j][k]))=="<type 'datetime.date'>":
+        st=st+(r[j][k]).strftime('%d.%m.%Y')+cm
+       else:
+        st=st+str(r[j][k])+cm
+     sq4="update reestrs set status=10, outfilename="+quoted(fn)+clm+"date_out="+quoted(d)+clm+"out_packet_id="+str(id)+ " where id="+str(r[j][0])
+     st=st+'\n'
+     #print st
+     #print output_path+fn
+     f.write(st.encode('UTF-8'))
+     cur.execute(sq4)
+    con.commit()
+    f.close() 
+  else:
+   print "Все уже обработано!"    
     
 
  con2.close()
