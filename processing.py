@@ -14,7 +14,7 @@ def getgenerator(cur,gen):
  try:
   cur.execute(sq)
  except:
-  print "err",e
+  print "err"
   g=-1
  else:
   r=cur.fetchall()
@@ -124,6 +124,8 @@ def main():
   #for i in r:
   # f.write(rr)
   # f.close()
+  cur.close()
+  cur2.close()
   con.close()
   con2.close()
  if sys.argv[1]=='process':
@@ -137,6 +139,7 @@ def main():
   with Profiler() as p:
    cur.execute(sql8)
    r=cur.fetchall()
+  #BBB
   inform(u"Найдено "+str(len(r))+u" соответствий, ИП в исполнении")
   inform(u"Герерируем и сразу исполняем скрипт обработки:")
   with Profiler() as p:
@@ -151,6 +154,7 @@ def main():
   with Profiler() as p:
    cur.execute(sql9)
    r=cur.fetchall()
+   con.commit()
   inform(u"Найдено "+str(len(r))+u" соответствий, ИП не в исполнении")
   inform(u"Герерируем и сразу исполняем скрипт обработки:")
   with Profiler() as p:
@@ -175,6 +179,7 @@ def main():
   cur.execute (sq1)
   packets=cur.fetchall()
   #print packets[0][0]
+  #con.commit()
   if len(packets)<>0:
    datedir=datetime.now().strftime('%d_%m_%Y')
    try:
@@ -183,7 +188,7 @@ def main():
     print output_path2+datedir
    # pass
    for i in range(0,len(packets)):
-    cur = con.cursor()
+    #cur = con.cursor()
     id=getgenerator(cur,'SEC_REESTRS_OUT_PACK')
     pp=packets[i][0]
     print "PP "+pp
@@ -224,7 +229,7 @@ def main():
      cur.execute(sq4)
     con.commit()
     f.close() 
-    con.close()
+   con.close()
   else:
    print "Все уже обработано!"    
     
