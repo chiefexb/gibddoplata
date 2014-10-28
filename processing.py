@@ -14,13 +14,11 @@ def getgenerator(cur,gen):
  try:
   cur.execute(sq)
  except:
-  print "err"
- cur.execute(sq)
- r=cur.fetchall()
- try:
-  g=r[0][0]
- except:
+  print "err",e
   g=-1
+ else:
+  r=cur.fetchall()
+  g=r[0][0]
  return g
 def inform(st):
  logging.info(st)
@@ -65,6 +63,9 @@ def main():
  
  nd=xmlroot.find('output_path')
  output_path=nd.text
+ nd=xmlroot.find('output_path2')
+ output_path2=nd.text
+
  clm=' , '
  cm=';'
  fileconfig.close()
@@ -175,10 +176,19 @@ def main():
   packets=cur.fetchall()
   #print packets[0][0]
   if len(packets)<>0:
+   datedir=datetime.now().strftime('%d_%m_%Y')
+   try:
+    mkdir(output_path2+datedir)
+   except:
+    print output_path2+datedir
+   # pass
    for i in range(0,len(packets)):
+    cur = con.cursor()
     id=getgenerator(cur,'SEC_REESTRS_OUT_PACK')
     pp=packets[i][0]
+    print "PP "+pp
     sq3=sq+" and osp="+quoted(pp)
+    print sq3 ,id 
     inform(u"Выбираем подразделение: "+pp)
     with Profiler() as p:
      cur.execute(sq3)
@@ -210,7 +220,7 @@ def main():
      #print st
      #print output_path+fn
      f.write(st.encode('UTF-8'))
-     savetable(table,textdoc,output_path+fn2)
+     savetable(table,textdoc,output_path2+datedir+'/'+fn2)
      cur.execute(sq4)
     con.commit()
     f.close() 
