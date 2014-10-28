@@ -9,9 +9,10 @@
   <hostname>localhost</hostname>
   <dbname>ncore-rbd</dbname>
   <user>SYSDBA</user>
-  <password>pedq15A</password>
+  <password></password>
  </rbd>
  <input_path>/home/gibdd/in/</input_path>
  <input_arc_path>/home/gibdd/in_arc/</input_arc_path>
  <output_path>/home/gibdd/out/</output_path> 
+ <output_path2>/home/gibdd/out/</output_path2>
 </config>
