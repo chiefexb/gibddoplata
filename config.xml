@@ -3,16 +3,16 @@
   <hostname>localhost</hostname>
   <dbname>mvd</dbname>
   <user>SYSDBA</user>
-  <password></password>
+  <password>vSyWIFgg7</password>
  </main_database>
  <rbd>
-  <hostname>localhost</hostname>
+  <hostname>10.9.4.11</hostname>
   <dbname>ncore-rbd</dbname>
   <user>SYSDBA</user>
-  <password></password>
+  <password>vSyWIFgg7</password>
  </rbd>
  <input_path>/home/gibdd/in/</input_path>
  <input_arc_path>/home/gibdd/in_arc/</input_arc_path>
  <output_path>/home/gibdd/out/</output_path> 
- <output_path2>/home/gibdd/out/</output_path2>
+ <output_path2>/home/all/gaiout/</output_path2>
 </config>
