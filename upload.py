@@ -23,7 +23,7 @@ def getgenerator(cur,gen):
  except:
   print "err"
  cur.execute(sq)
- r=cur.fetchall()
+ r=cur.fetchone()
  try:
   g=r[0][0]
  except:
@@ -66,8 +66,13 @@ def main():
  print input_path
  #input_path='/home/chief/work/gai/'
  #ff='for_UFSSP_20131219_184058.txt'
+ cur = con.cursor()
+ cur2=con.cursor()
  for ff in listdir(input_path):
+  st=[]
+  j=0
   with Profiler() as p:
+   con.begin()
    print "Начинаем обрабатывать файл:"+ff
    logging.info(u"Начинаем обрабатывать файл:"+ff)
    f=file(input_path+ff)
@@ -86,12 +91,20 @@ def main():
    #pp=l[6].decode('CP1251').split(';')
    #print pp[1],pp
    sql='INSERT INTO REESTRS (ID, PACKET_ID, NUM_ID, DATE_ID, LASTNAME, FISTNAME_OGRN, SECONDNAME_INN, SUMM, DATE_ISP, MARK_ISP, PRIM, FILENAME, DATE_ACT, PERIOD_START, PERIOD_END, FIO_OFICER, STATUS, OSP, NUM_IP, OUTFILENAME, DATE_OUT, OUT_PACKET_ID) VALUES ('
-   cur = con.cursor()
+   #cur = con.cursor()
+   #cur2=con.cursor()
    #id=getgenerator(cur,'SEC_REESTRS')
-   pack_id=getgenerator(cur,'SEC_REESTRS_PACK')
+   #pack_id=
+   cur.execute('SELECT GEN_ID(SEC_REESTRS_PACK, 1) FROM RDB$DATABASE')
+   r=cur.fetchone()
+   pack_id=int(r[0])
+   print r[0]
+   #getgenerator(cur2,'SEC_REESTRS_PACK')
+   #j=1
+   print len(l)
    for i in range(6,len(l)):
     #print l[i].decode('CP1251')
-    id=getgenerator(cur,'SEC_REESTRS')
+    #id=getgenerator(cur,'SEC_REESTRS')
     pp=l[i].decode('CP1251').split(';')
     #print id,'LEN,',len(pp)
     #print l[i]
@@ -104,18 +117,54 @@ def main():
      logging.info(l[i].decode('CP1251'))
     else:
      date_isp=quoted(pp[7])
-    sql2=sql+str(id)+clm+str(pack_id)+clm+quoted(pp[1])+clm+quoted(pp[2])+clm+quoted(pp[3])+clm+quoted(pp[4])+clm+quoted(pp[5])+clm+(pp[6])+clm+date_isp+clm+quoted(pp[8])+clm+quoted(pp[9])+clm+quoted(ff)+clm+quoted(date_act)+clm+quoted(date_start)+clm+quoted(date_end)+clm+quoted(oficer)+',0, null,null,null,null,null)'
+    sql2=sql+'GEN_ID(SEC_REESTRS, 1)'+clm+str(pack_id)+clm+quoted(pp[1])+clm+quoted(pp[2])+clm+quoted(pp[3])+clm+quoted(pp[4])+clm+quoted(pp[5])+clm+(pp[6])+clm+date_isp+clm+quoted(pp[8])+clm+quoted(pp[9])+clm+quoted(ff)+clm+quoted(date_act)+clm+quoted(date_start)+clm+quoted(date_end)+clm+quoted(oficer)+',0, null,null,null,null,null)'
     #print sql2
+    #st.append(sql2)
     try:
      cur.execute(sql2)
     except  Exception, e:
-     logging.error(u'Файл:'+ff+u'. Ошибка в скрипте:')
+     print i, e,sql2
+     
+     logging.error(u'Файл:'+ff+u'. Ошибка в скрипте:'+unicode(e))
      if pp[6]=='':
       logging.error(u'Отсутствует сумма оплаты')
      logging.info(l[i].decode('CP1251'))
      logging.error(sql2)
-   con.commit()
+    j=j+1
+    if j>=5000:
+     #print "COMM 5000",i,sql2
+     con.commit()
+     con.begin()
+     j=0
+   print j
    f.close()
+   print "Before"
+   con.commit()
+   print "After"
+   #print len(st),sys.getsizeof (st)
+   #j=0
+   #k=1
+   #ll=len(st)
+   #for sq in st:
+   #cur.execute(stt)
+   # try:
+   #  cur.execute(sq)
+   # except  Exception, e:
+   #  logging.error(u'Файл:'+ff+u'. Ошибка в скрипте:'+unicode(e))
+     #if pp[6]=='':
+     # logging.error(u'Отсутствует сумма оплаты')
+     #logging.info(l[i].decode('CP1251'))
+     #logging.error(sq)
+    #j=j+1
+    #k=k+1
+    #if j>=5000:
+    #print "COMM "+str(k)+"/"+str(ll)
+    #con.commit()
+    #j=0
+  print "FIN"
+  #con.commit()
+   #f.close()
+   #con.close()
   rename(input_path+ff, input_arc_path+ff)
  fileconfig.close()
  con.close() 
