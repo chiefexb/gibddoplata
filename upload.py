@@ -102,6 +102,7 @@ def main():
    #getgenerator(cur2,'SEC_REESTRS_PACK')
    #j=1
    print len(l)
+   lll=len(l)
    for i in range(6,len(l)):
     #print l[i].decode('CP1251')
     #id=getgenerator(cur,'SEC_REESTRS')
@@ -123,8 +124,10 @@ def main():
     try:
      cur.execute(sql2)
     except  Exception, e:
-     print i, e,sql2
-     
+     #print i, e,sql2
+     if pp[6]<>'':
+      print i, e,sql2
+      #exit(2)
      logging.error(u'Файл:'+ff+u'. Ошибка в скрипте:'+unicode(e))
      if pp[6]=='':
       logging.error(u'Отсутствует сумма оплаты')
@@ -132,8 +135,9 @@ def main():
      logging.error(sql2)
     j=j+1
     if j>=5000:
-     #print "COMM 5000",i,sql2
+     print "Commit:", i,'/',lll
      con.commit()
+     cur.clear_cache()
      con.begin()
      j=0
    print j
