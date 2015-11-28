@@ -34,7 +34,10 @@ class Profiler(object):
         print st
         logging.info(st)
 def quoted(a):
- st=u"'"+a+u"'"
+ try:
+  st=u"'"+a+u"'"
+ except:
+  st=None
  return st
 def main():
  print  len(sys.argv)
