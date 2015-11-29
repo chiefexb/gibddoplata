@@ -37,7 +37,7 @@ def quoted(a):
  try:
   st=u"'"+a+u"'"
  except:
-  st=None
+  st='Null'
  return st
 def main():
  print  len(sys.argv)
@@ -162,9 +162,13 @@ def main():
   inform(u"Герерируем и сразу исполняем скрипт обработки:")
   with Profiler() as p:
    for i in range(0,len(r)):
-    sq="update reestrs set status=3, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+", ip_exec_prist_name="+quoted(r[i][3]) +"  where id="+str(r[i][2])
-    #print sq
+    try:
+     sq="update reestrs set status=3, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+", ip_exec_prist_name="+quoted(r[i][3]) +"  where id="+str(r[i][2])
+    except: 
+     print r[i]
+     sys.exit(2)
     cur.execute(sq)
+    
   inform(u"Меряем время коммита:")
   with Profiler() as p:
    con.commit()
