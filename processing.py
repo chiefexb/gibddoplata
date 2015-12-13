@@ -231,6 +231,7 @@ def main():
      st=st+'\n'
      #print st
      #print output_path+fn
+     
      f.write(st.encode('UTF-8'))
      savetable(table,textdoc,output_path2+datedir+'/'+fn2)
      cur.execute(sq4)
