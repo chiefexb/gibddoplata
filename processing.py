@@ -145,11 +145,20 @@ def main():
   #BBB
   inform(u"Найдено "+str(len(r))+u" соответствий, ИП в исполнении")
   inform(u"Герерируем и сразу исполняем скрипт обработки:")
+  j=0
   with Profiler() as p:
    for i in range(0,len(r)):
     sq="update reestrs set status=1, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+", ip_exec_prist_name="+quoted(r[i][3]) +" where id="+str(r[i][2])
     #print sq
     cur.execute(sq)
+    j=j+1
+    if j>=5000:
+     #print "COMM 5000",i,sql2
+     print "Commit:", i,'/',lll
+     con.commit()
+     cur.clear_cache()
+     con.begin()
+     j=0
   inform(u"Меряем время коммита:")
   with Profiler() as p:
    con.commit()
@@ -160,14 +169,24 @@ def main():
    con.commit()
   inform(u"Найдено "+str(len(r))+u" соответствий, ИП не в исполнении")
   inform(u"Герерируем и сразу исполняем скрипт обработки:")
+  j=0
   with Profiler() as p:
-   for i in range(0,len(r)):
+   lll=len(r)
+   for i in range(0,len(r)):    
     try:
      sq="update reestrs set status=3, num_ip="+quoted(r[i][0])+", osp="+quoted(r[i][1])+", ip_exec_prist_name="+quoted(r[i][3]) +"  where id="+str(r[i][2])
     except: 
      print r[i]
      sys.exit(2)
     cur.execute(sq)
+    j=j+1
+    if j>=5000:
+     #print "COMM 5000",i,sql2
+     print "Commit:", i,'/',lll
+     con.commit()
+     cur.clear_cache()
+     con.begin()
+     j=0
     
   inform(u"Меряем время коммита:")
   with Profiler() as p:
